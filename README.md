@@ -75,11 +75,9 @@ kubectl apply -f test.yaml
 3. Verify sidecar container is injected:
 
 ```
-# kubectl -n test-ns get pod
-NAME                     READY     STATUS        RESTARTS   AGE
-alpine                   2/2       Running       0          10s
-# kubectl -n test-ns get pod alpine -o jsonpath="{.spec.containers[*].name}"
-alpine sidecar-nginx
+#[root@VM-13-7-centos ~/ycw/webhook]# kubectl get po -n test-ns
+#NAME                    READY   STATUS    RESTARTS   AGE
+#sleep-fc87db5db-pxplz   2/2     Running   0          2m38s
 ```
 
 ## Troubleshooting
