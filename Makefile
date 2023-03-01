@@ -80,7 +80,7 @@ deploy: kustomize
 undeploy: kustomize
 	$(KUSTOMIZE) build deploy | $(KUBECTL) delete --ignore-not-found -f -
 
-KUSTOMIZE = $(shell pwd)/bin/kustomize
+KUSTOMIZE = $(shell pwd)/bin/kustomize.exe
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
