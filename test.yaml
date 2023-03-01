@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sleep
+  namespace: test-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sleep
+  template:
+    metadata:
+      labels:
+        app: sleep
+    spec:
+      containers:
+      - name: sleep
+        image: harbor.ske.shein.io/ycw-test/bash:latest
+        #实际业务场景应该是java程序将日志输入到某个目录
+        command: ["/bin/sh","-c","mkdir -p  /var/log/myapp;for i in $(seq 1 109999); do echo \"The value of i is: $i\">> /var/log/myapp/1.log && sleep 1; done"]
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/myapp
+      volumes:
+      - name: logs
+        emptyDir: {}

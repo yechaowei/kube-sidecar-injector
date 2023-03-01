@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"net/http"
 	"strings"
 
@@ -169,14 +170,70 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 	return patch
 }
 
+const (
+	kafkaOutputHosts = "kafka:9092"
+	kafkaOutputTopic = "my-topic"
+)
+
+func addFilebeat(basePath string) (patch []patchOperation) {
+	var value interface{}
+
+	filebeat := corev1.Container{
+		Name:            "filebeat",
+		Image:           "harbor.ske.shein.io/ycw-test/filebeat:7.6.2",
+		ImagePullPolicy: "Always",
+		Command: []string{
+			"/usr/share/filebeat/filebeat",
+			"-e",
+			"-E", "output.kafka.enabled=true",
+			"-E", "output.kafka.hosts=[" + kafkaOutputHosts + "]",
+			"-E", "output.kafka.topic=" + kafkaOutputTopic,
+			"-E", "filebeat.inputs=[{\"paths\":[\"/var/log/myapp/*\"]}]",
+		},
+		Resources: corev1.ResourceRequirements{
+			Limits:   map[corev1.ResourceName]resource.Quantity{"cpu": resource.MustParse("500m"), "memory": resource.MustParse("1000Mi")},
+			Requests: map[corev1.ResourceName]resource.Quantity{"cpu": resource.MustParse("100m"), "memory": resource.MustParse("100Mi")},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			{
+				Name:      "logs",
+				MountPath: "/var/log/myapp",
+			},
+		},
+		Env: []corev1.EnvVar{
+			{
+				Name:  "OUTPUT_KAFKA_HOSTS",
+				Value: kafkaOutputHosts,
+			},
+			{
+				Name:  "OUTPUT_KAFKA_TOPIC",
+				Value: kafkaOutputTopic,
+			},
+		},
+	}
+
+	value = filebeat
+
+	patch = append(patch, patchOperation{
+		Op:    "add",
+		Path:  basePath + "/-",
+		Value: value,
+	})
+	return patch
+}
+
 // create mutation patch for resoures
 func createPatch(pod *corev1.Pod, sidecarConfig *Config, annotations map[string]string) ([]byte, error) {
 	var patch []patchOperation
 
-	//实际做修改的方法pod.spec的方法,通过传入的config文件进行修改
-	patch = append(patch, addContainer(pod.Spec.Containers, sidecarConfig.Containers, "/spec/containers")...)
-	patch = append(patch, addVolume(pod.Spec.Volumes, sidecarConfig.Volumes, "/spec/volumes")...)
-	patch = append(patch, updateAnnotation(pod.Annotations, annotations)...)
+	//实际做修改pod.spec的方法,通过传入的config文件进行修改
+
+	//patch = append(patch, addContainer(pod.Spec.Containers, sidecarConfig.Containers, "/spec/containers")...)
+	//	patch = append(patch, addVolume(pod.Spec.Volumes, sidecarConfig.Volumes, "/spec/volumes")...)
+	//  patch = append(patch, updateAnnotation(pod.Annotations, annotations)...)
+
+	//固定加入filebeat
+	patch = append(patch, addFilebeat("/spec/containers")...)
 
 	return json.Marshal(patch)
 }

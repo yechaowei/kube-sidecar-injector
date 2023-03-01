@@ -61,12 +61,15 @@ sidecar-injector     Active   17m
 ```
 
 2. Deploy an app in Kubernetes cluster, take `alpine` app as an example
+# 为了更简化前台的配置，将不启用filebeat.yml配置，使用命令行来启动filebeat
+# 注入的filebeat修改过filebeat.yml的，因为原生的filebeat使用命令行会有以下问题:
+# 修改filebeat.yml，删掉自带的output
+bash-4.2$ filebeat -e -E output.kafka.hosts=["kafka:9092"] -E output.kafka.topic="my-topic" -E filebeat.inputs.0.paths=["/path/to/logs/*"]
+Exiting: error unpacking config data: more than one namespace configured accessing 'output' (source:'filebeat.yml')
+
 
 ```bash
-kubectl -n test-ns run alpine \
-    --image=alpine \
-    --restart=Never \
-    --command -- sleep infinity
+kubectl apply -f test.yaml
 ```
 
 3. Verify sidecar container is injected:
