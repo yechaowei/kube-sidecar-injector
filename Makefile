@@ -19,7 +19,7 @@ KUSTOMIZE_VERSION?=v3.5.4
 KUSTOMIZE_ARCHIVE_NAME?=kustomize_$(KUSTOMIZE_VERSION)_$(GOHOSTOS)_$(GOHOSTARCH).tar.gz
 kustomize_dir:=$(dir $(KUSTOMIZE))
 
-IMAGE = harbor.ske.shein.io/ycw-test/filebeat-sidercar:latest
+IMAGE = dockerhub.io/ycw-test/filebeat-sidercar:latest
 
 all: build
 .PHONY: all

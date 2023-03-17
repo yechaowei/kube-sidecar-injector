@@ -180,7 +180,7 @@ func addFilebeat(basePath string) (patch []patchOperation) {
 
 	filebeat := corev1.Container{
 		Name:            "filebeat",
-		Image:           "harbor.ske.shein.io/ycw-test/filebeat:7.6.2",
+		Image:           "filebeat:7.6.2",
 		ImagePullPolicy: "Always",
 		Command: []string{
 			"/usr/share/filebeat/filebeat",
